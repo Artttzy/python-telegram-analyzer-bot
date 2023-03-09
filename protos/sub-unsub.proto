@@ -1,0 +1,180 @@
+syntax = "proto3";
+import "google/protobuf/timestamp.proto";
+
+service SubscribtionService {
+  rpc TriggerEvent(SubUnsubEvent) returns (EventResponse);
+  rpc JoinLeftStatistics(JoinLeftRequest) returns (JoinLeftStatisticsResponse);
+  rpc ConnectedChannelsCount(EmptyMessage)
+      returns (ConnectedChannelsCountResponse);
+  rpc SetAdminChannel(AdminChannel) returns (EmptyMessage);
+  rpc GetAdminChannels(EmptyMessage) returns (AdminChannelList);
+  rpc AddAdmin(Admin) returns (EmptyMessage);
+  rpc GetAdmins(EmptyMessage) returns (AdminList);
+  rpc RemoveAdmin(Admin) returns (EmptyMessage);
+  rpc GetAdminByUserId(UserIdRequest) returns (NullableAdmin);
+  rpc GetSubscriberHistory(AdminChannelId) returns (SubscriberHistory);
+  rpc PushSubscriberHistory(PushSubscriberHistoryMessage)
+      returns (EmptyMessage);
+  rpc SaveMessage(SaveMessageRequest) returns (EmptyMessage);
+  rpc GetMessages(AdminChannelId) returns (ChannelMessageList);
+  rpc DeleteAdminChannel(AdminChannelId) returns (EmptyMessage);
+  rpc WriteGenderStats(GenderRequest) returns (EmptyMessage);
+  rpc WriteAgeStats(AgeRequest) returns (EmptyMessage);
+  rpc GetStatsPerChannel(AdminChannelId) returns (CAStats);
+  rpc GetChannelJoinList(AdminChannelId) returns (UserList);
+  rpc GetAverageAnswerTime(TicketStatsRequest) returns (AnswerTime);
+  rpc GetAnswerTimeForEach(TicketStatsRequest) returns (DayAnswerStats);
+
+  rpc SetJoinMessageId(SetAnnounceMessagesRequest) returns (EmptyMessage);
+  rpc SetLeftMessageId(SetAnnounceMessagesRequest) returns (EmptyMessage);
+
+  rpc GetJoinMessage(AdminChannelId) returns (AnnounceMessagesResponse);
+  rpc GetLeftMessage(AdminChannelId) returns (AnnounceMessagesResponse);
+
+  rpc GetTodayPeak(AdminChannelId) returns (SubscriberPeak);
+}
+
+message SubUnsubEvent {
+  string id = 1;
+  string channelId = 2;
+  google.protobuf.Timestamp time = 3;
+  string subStatus = 4;
+}
+
+message JoinLeftRequest {
+  google.protobuf.Timestamp day = 1;
+  string channelId = 3;
+}
+
+message JoinLeftInfo {
+  string time = 1;
+  int32 value = 2;
+}
+
+message JoinLeftStatisticsResponse {
+  repeated JoinLeftInfo joined = 1;
+  repeated JoinLeftInfo left = 2;
+}
+
+message EventResponse {}
+
+message EmptyMessage {}
+
+message ConnectedChannelsCountResponse { int32 channelCount = 1; }
+
+message AdminChannel {
+  string channelId = 1;
+  string channelName = 2;
+}
+
+message AdminChannelList { repeated AdminChannel channels = 1; }
+
+message Admin {
+  string userId = 1;
+  string username = 2;
+  bool superuser = 3;
+}
+
+message AdminList { repeated Admin admins = 1; }
+message UserIdRequest { string userId = 1; }
+
+message NullableAdmin {
+  oneof adminOrNull {
+    Admin admin = 1;
+    EmptyMessage empty = 2;
+  }
+}
+
+message SubscriberHistoryElement {
+  int32 value = 1;
+  string date = 2;
+}
+
+message SubscriberHistory { repeated SubscriberHistoryElement history = 1; }
+
+message AdminChannelId { string channelId = 1; }
+
+message PushSubscriberHistoryMessage {
+  string channelId = 1;
+  int32 value = 2;
+}
+
+message SaveMessageRequest {
+  string channelId = 1;
+  string messageId = 2;
+}
+
+message ChannelMessage {
+  string messageId = 1;
+  google.protobuf.Timestamp messageDate = 2;
+}
+
+message ChannelMessageList {
+  string channelId = 1;
+  repeated ChannelMessage messages = 2;
+}
+
+message GenderRequest {
+  string userId = 1;
+  string gender = 2;
+  string channelId = 3;
+}
+
+message AgeRequest {
+  string userId = 1;
+  int32 age = 2;
+  string channelId = 3;
+}
+
+message CAStat {
+  string userId = 1;
+  string gender = 2;
+  int32 age = 3;
+}
+
+message CAStats {
+  string channelId = 1;
+  repeated CAStat stats = 2;
+}
+
+message UserList { repeated UserIdRequest users = 1; }
+
+message AnswerTime {
+  google.protobuf.Timestamp answerTime = 1;
+  int32 ticketCount = 2;
+}
+
+message AdminStat {
+  string userId = 1;
+  google.protobuf.Timestamp answerTime = 2;
+  int32 ticketCount = 3;
+}
+
+message DayAnswerStat {
+  google.protobuf.Timestamp day = 1;
+  repeated AdminStat stats = 2;
+}
+
+message DayAnswerStats { repeated DayAnswerStat stats = 1; }
+
+message TicketStatsRequest {
+  google.protobuf.Timestamp day = 1;
+  string channelId = 2;
+}
+
+message SetAnnounceMessageRequest {
+  string channelId = 1;
+  string messageId = 2;
+}
+
+message SetAnnounceMessagesRequest {
+  repeated SetAnnounceMessageRequest messages = 1;
+  string adminChannel = 2;
+}
+
+message AnnounceMessagesResponse { repeated SaveMessageRequest messages = 1; }
+
+message SubscriberPeak {
+  int32 value = 1;
+  google.protobuf.Timestamp date = 2;
+}

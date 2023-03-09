@@ -1,0 +1,177 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Event {
+  id          Int      @id @default(autoincrement())
+  userId      String   @db.VarChar(32)
+  channelId   String   @db.VarChar(32)
+  eventTime   DateTime @db.Timestamptz(3)
+  eventStatus String   @db.VarChar(20)
+
+  @@index([userId])
+  @@index([channelId])
+  @@index([eventStatus])
+}
+
+model AdminChannel {
+  id                Int                 @id @default(autoincrement())
+  channelId         String              @db.VarChar(32)
+  channelName       String
+  SubscriberHistory SubscriberHistory[]
+  messages          Message[]
+  redirects         SupportRedirect[]
+  callCenters       CallCenter?
+  announceBot       AnnounceBot?
+
+  @@unique([channelId])
+}
+
+model Admin {
+  id        Int     @id @default(autoincrement())
+  userId    String  @db.VarChar(32)
+  username  String
+  superuser Boolean @default(false)
+
+  @@unique([userId])
+}
+
+model SubscriberHistory {
+  id              Int          @id @default(autoincrement())
+  channelKey      Int
+  channel         AdminChannel @relation(fields: [channelKey], references: [id], onDelete: Cascade)
+  measureTime     DateTime     @db.Timestamptz(3)
+  subscriberCount Int
+
+  @@index([channelKey])
+}
+
+model Message {
+  id              Int           @id @default(autoincrement())
+  channelKey      Int
+  channel         AdminChannel  @relation(fields: [channelKey], references: [id], onDelete: Cascade)
+  messageId       String
+  measureTime     DateTime      @db.Timestamptz(3)
+
+  @@index([channelKey])
+  @@unique([messageId, channelKey])
+}
+
+model SupportRedirect {
+  id              Int           @id @default(autoincrement())
+  channelKey      Int
+  channel         AdminChannel  @relation(fields: [channelKey], references: [id], onDelete: Cascade)
+  clickTime       DateTime      @db.Timestamptz(3)
+  count           Int
+
+  @@index([channelKey])
+}
+
+model AnnounceBot {
+  id              Int                     @id @default(autoincrement())
+  channelKey      Int
+  channel         AdminChannel            @relation(fields: [channelKey], references: [id], onDelete: Cascade)
+  botMessages     AnnounceBotMessage[]
+
+  @@unique([channelKey])
+}
+
+model AnnounceBotMessage {
+  id                Int           @id @default(autoincrement())
+
+  announceBotKey    Int
+  announceBot       AnnounceBot?  @relation(fields: [announceBotKey], references: [id], onDelete: Cascade)
+
+  channelId         String        @db.VarChar(32)
+  messageId         String        @db.VarChar(32)
+
+  messageType       String        @db.VarChar(5)
+
+  @@unique([channelId, messageId])
+  @@index([announceBotKey])
+  @@index([messageType])
+}
+
+model CallCenter {
+  id          Int                 @id @default(autoincrement())
+  channelKey  Int
+  channel     AdminChannel        @relation(fields: [channelKey], references: [id], onDelete: Cascade)
+  agents      SupportAgent[]
+  externalId  String              @db.Uuid @default(uuid())
+  tickets     SupportTicket[]
+
+  @@unique([channelKey])
+  @@unique([externalId])
+}
+
+model SupportAgent {
+  id                Int             @id @default(autoincrement())
+  userId            String          @db.VarChar(32)
+  callCenterKey     Int
+  callCenter        CallCenter      @relation(fields: [callCenterKey], references: [id], onDelete: Cascade)
+  tickets           SupportTicket[] @relation("TICKET_AGENT_RELATION")
+  activeTicketKey   Int?
+  activeTicket      SupportTicket?  @relation("AGENT_ACTIVE-TICKET_RELATION", fields: [activeTicketKey], references: [id], onDelete: SetNull)
+
+  isWorking         Boolean         @default(false)
+
+  @@unique([userId, callCenterKey])
+  @@index([callCenterKey])
+  @@unique([activeTicketKey])
+}
+
+model SupportTicket {
+  id            Int               @id @default(autoincrement())
+  userId        String            @db.VarChar(32)
+  agentKey      Int?
+  agent         SupportAgent?     @relation("TICKET_AGENT_RELATION", fields: [agentKey], references: [id], onDelete: SetNull)
+  activeAgent   SupportAgent?     @relation("AGENT_ACTIVE-TICKET_RELATION")
+
+  openTime      DateTime          @db.Timestamptz(3)
+  findTime      DateTime?         @db.Timestamptz(3)
+  answerTime    DateTime?         @db.Timestamptz(3)
+  closeTime     DateTime?         @db.Timestamptz(3)
+
+  status        String            @db.VarChar(10)
+  callCenterKey Int
+  callCenter    CallCenter        @relation(fields: [callCenterKey], references: [id], onDelete: Cascade)
+  messages      TicketMessage[]
+  userMessages  Int               @default(0)
+  agentMessages Int               @default(0)
+  username      String?
+
+  @@index([userId])
+  @@index([agentKey])
+  @@index([callCenterKey])
+}
+
+model CAStats {
+  id          Int       @id @default(autoincrement())
+  userId      String    @db.VarChar(32)
+  channelId   String    @db.VarChar(32)
+
+  gender      String?   @db.VarChar(10)
+  age         Decimal?  @db.Decimal(3, 0)
+
+  @@unique([userId, channelId])
+  @@index([gender])
+  @@index([age])
+}
+
+model TicketMessage {
+  id          Int               @id @default(autoincrement())
+  messageId   String            @db.VarChar(32)
+  ticketKey   Int
+  ticket      SupportTicket     @relation(fields: [ticketKey], references: [id], onDelete: Cascade)
+
+  @@index([ticketKey])
+  @@unique([messageId])
+}

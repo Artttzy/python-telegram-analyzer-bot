@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Event" ALTER COLUMN "eventTime" SET DATA TYPE TIMESTAMPTZ(3);

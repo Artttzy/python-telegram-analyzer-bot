@@ -1,0 +1,116 @@
+syntax = "proto3";
+
+service Tickets {
+  rpc OpenTicket(OpenTicketRequest) returns (TicketData);
+  rpc GetStatus(GetStatusRequest) returns (SupportStatus);
+  rpc CloseTicket(CloseTicketRequest) returns (TicketData);
+  rpc LogAgentMessage(TicketIdRequest) returns (Empty);
+  rpc LogUserMessage(UserMessageRequest) returns (BoolWrapper);
+  rpc CheckAvailableAgents(CheckAvailableAgentsRequest)
+      returns (TicketUpdateResponse);
+  rpc RegisterCallcenter(RegisterCallcenterRequest) returns (CallcenterData);
+  rpc GetCallcenterByChannelId(ChannelId) returns (CallcenterData);
+  rpc RemoveCallCenter(ChannelId) returns (Empty);
+  rpc AddAgent(EditAgentRequest) returns (CallcenterData);
+  rpc RemoveAgent(EditAgentRequest) returns (CallcenterData);
+
+  rpc AddAnnounceBot(RegisterCallcenterRequest) returns (Empty);
+  rpc GetAnounceBotByChannelId(ChannelId) returns (AnnouneBotExists);
+  rpc RemoveAnnounceBot(ChannelId) returns (Empty);
+  rpc GetWorkday(GetStatusRequest) returns (WorkdayData);
+  rpc SetWorkday(WorkdayData) returns (WorkdayData);
+}
+
+message OpenTicketRequest {
+  string userId = 1;
+  string channelId = 2;
+  string callCenterId = 3;
+  string username = 4;
+}
+
+message Empty {}
+
+message BoolWrapper { bool value = 1; }
+
+message TicketData {
+  int32 ticketId = 1;
+  string userId = 2;
+
+  oneof agent {
+    string agentId = 3;
+    Empty empty = 4;
+  }
+
+  int32 userMessages = 5;
+  int32 agentMessages = 6;
+  string username = 7;
+}
+
+message GetStatusRequest {
+  string userId = 1;
+  string callcenterId = 2;
+}
+
+enum UserState {
+  USER = 0;
+  AGENT = 1;
+}
+
+enum SupportState {
+  IDLE = 0;
+  TICKET_PENDING_ANSWER = 1;
+  TICKET_OPEN = 2;
+}
+
+message SupportStatus {
+  UserState userState = 1;
+  SupportState supportState = 2;
+  oneof ticketState {
+    Empty empty = 3;
+    TicketData ticketData = 4;
+  }
+}
+
+message CloseTicketRequest { int32 ticketId = 1; }
+message TicketIdRequest { int32 ticketId = 1; }
+
+message CheckAvailableAgentsRequest { string callCenterId = 3; }
+
+message TicketUpdateResponse {
+  oneof ticketUpdate {
+    Empty empty = 1;
+    TicketData ticket = 2;
+  }
+
+  repeated UserMessageRequest messages = 3;
+}
+
+message RegisterCallcenterRequest { string channelId = 2; }
+
+message AgentData { string userId = 1; }
+
+message ChannelId { string channelId = 1; }
+
+message CallcenterData {
+  string channelId = 2;
+  repeated AgentData agents = 3;
+  string externalId = 4;
+}
+
+message EditAgentRequest {
+  ChannelId channel = 1;
+  AgentData agent = 2;
+}
+
+message AnnouneBotExists { bool exists = 1; }
+
+message UserMessageRequest {
+  int32 ticketId = 1;
+  string messageId = 2;
+}
+
+message WorkdayData {
+  string callCenterId = 1;
+  string agentId = 2;
+  bool isWorking = 3;
+}

@@ -1,0 +1,9 @@
+grpcout
+__pycache__
+
+/sub_unsub_pb2_grpc.py
+/sub_unsub_pb2.py
+/sub_unsub_pb2.pyi
+/ticket_bot_pb2.py
+/ticket_bot_pb2.pyi
+/ticket_bot_pb2_grpc.py

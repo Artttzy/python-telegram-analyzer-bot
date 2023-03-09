@@ -1,0 +1,5 @@
+aiogram==3.0.0b3
+pyrogram
+grpcio-tools
+python-dotenv
+pytz

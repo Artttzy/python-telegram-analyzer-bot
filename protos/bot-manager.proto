@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+service BotManager {
+  rpc CreateBot(CreateBotRequest) returns (BotResponse);
+  rpc CreateSpamBot(CreateSpamBotRequest) returns (BotResponse);
+  rpc DeleteBot(DeleteBotRequest) returns (BotResponse);
+}
+
+message CreateBotRequest {
+  string bot_token = 1;
+  string bot_callcenter = 2;
+  string bot_channel_id = 3;
+}
+
+message CreateSpamBotRequest {
+  string bot_token = 1;
+  string bot_channel_id = 2;
+}
+
+message BotResponse {}
+
+message DeleteBotRequest { string bot_token = 2; }
